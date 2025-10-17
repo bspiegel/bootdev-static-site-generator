@@ -3,6 +3,8 @@ import unittest
 from textnode import TextType, TextNode
 from generator import (
     split_nodes_delimiter,
+    split_nodes_image,
+    split_nodes_link,
     extract_markdown_images,
     extract_markdown_links,
 )
@@ -94,4 +96,122 @@ class TestGenerator(unittest.TestCase):
                 ("to youtube", "https://www.youtube.com/@bootdotdev"),
             ],
             links,
+        )
+
+    def test_split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_split_links(self):
+        node = TextNode(
+            "This is text with a link [to boot.dev](https://www.boot.dev) and another [to perplexity.ai](https://www.perplexity.ai)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a link ", TextType.TEXT),
+                TextNode("to boot.dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "to perplexity.ai", TextType.LINK, "https://www.perplexity.ai"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_split_trailing_text(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png) and some trailing text",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+                TextNode(" and some trailing text", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_split_leading_whitespace(self):
+        node = TextNode(
+            "          [to boot.dev](https://www.boot.dev) and another [to perplexity.ai](https://www.perplexity.ai)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("to boot.dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "to perplexity.ai", TextType.LINK, "https://www.perplexity.ai"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_split_trailing_whitespace(self):
+        node = TextNode(
+            "This is a link [to boot.dev](https://www.boot.dev) and another [to perplexity.ai](https://www.perplexity.ai)                    ",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("This is a link ", TextType.TEXT),
+                TextNode("to boot.dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "to perplexity.ai", TextType.LINK, "https://www.perplexity.ai"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_split_only_image(self):
+        node = TextNode(
+            "![peanut butter](https://i.imgur.com/zjjcJKZ.png)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_image([node])
+        self.assertListEqual(
+            [
+                TextNode(
+                    "peanut butter", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"
+                ),
+            ],
+            new_nodes,
+        )
+
+    def test_split_only_link(self):
+        node = TextNode(
+            "[to boot.dev](https://www.boot.dev)",
+            TextType.TEXT,
+        )
+        new_nodes = split_nodes_link([node])
+        self.assertListEqual(
+            [
+                TextNode("to boot.dev", TextType.LINK, "https://www.boot.dev"),
+            ],
+            new_nodes,
         )
