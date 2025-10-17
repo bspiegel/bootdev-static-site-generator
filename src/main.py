@@ -1,5 +1,5 @@
 from inline_markdown import text_to_textnodes
-from block_markdown import markdown_to_blocks
+from block_markdown import block_to_block_type, markdown_to_blocks
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode, LeafNode, ParentNode
 
@@ -30,16 +30,28 @@ def main():
     # )
     # print(new_nodes)
 
-    md = """
-    This is **bolded** paragraph
+    # md = """
+    # This is **bolded** paragraph
 
-    This is another paragraph with _italic_ text and `code` here
-    This is the same paragraph on a new line
+    # This is another paragraph with _italic_ text and `code` here
+    # This is the same paragraph on a new line
 
-    - This is a list
-    - with items
-    """
-    print(list(markdown_to_blocks(md)))
+    # - This is a list
+    # - with items
+    # """
+    # print(list(markdown_to_blocks(md)))
+
+    blocks = [
+        "This is a paragraph, buddy.",
+        "# Heading 1",
+        "```\nthis is some code in codeland\n```",
+        "-This will be a nice unordered list\n-with multiple\n-items",
+        "1. An ordered list here\n2. which more than one\n3. precious item",
+        "> this is an important quote\n> from a very famous individual",
+    ]
+    print(blocks)
+    for block in blocks:
+        print(block_to_block_type(block))
 
 
 if __name__ == "__main__":
